@@ -16,10 +16,16 @@
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
 @property NSArray *movies;
 @property (nonatomic, strong) UIRefreshControl *refreshControl;
+@property (weak, nonatomic) IBOutlet UIView *networkErrorView;
 
 @end
 
 @implementation MoviesViewController
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    self.networkErrorView.hidden = true;
+}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -31,16 +37,12 @@
     NSURLRequest *request = [[NSURLRequest alloc] initWithURL:url];
     [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *connectionError) {
         if (connectionError) {
-            UILabel *sv = [[UILabel alloc]initWithFrame:CGRectMake(0,0, self.tableView.bounds.size.width, 34)];
-            sv.backgroundColor = [UIColor grayColor];
-            sv.textColor = [UIColor whiteColor];
-            sv.text = @"Network Error";
-            sv.textAlignment = NSTextAlignmentCenter;
-            [self.tableView addSubview:sv];
+            self.networkErrorView.hidden = false;
         } else {
             NSDictionary *json = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
             self.movies = json[@"movies"];
             [self.tableView reloadData];
+            self.networkErrorView.hidden = true;
         }
         [KVNProgress dismiss];
     }];
